@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Jinja" />
+    <meta name="theme-color" content="#b7282e" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <title>Jinja</title>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <!-- Obere Leiste: Suche + Filter -->
+    <div id="topbar">
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="Schrein suchen (神社, Romaji …)" autocomplete="off" />
+        <div id="search-results" hidden></div>
+      </div>
+      <button id="btn-filter" class="icon-btn" aria-label="Filter">☰</button>
+    </div>
+
+    <div id="side-buttons">
+      <button id="btn-locate" class="icon-btn" aria-label="Mein Standort">◎</button>
+      <button id="btn-stats" class="icon-btn" aria-label="Statistik">⛩</button>
+    </div>
+
+    <div id="sync-badge" hidden></div>
+    <div id="toast" hidden></div>
+
+    <!-- Detail-Sheet -->
+    <div id="sheet" class="sheet" hidden>
+      <div class="sheet-handle"></div>
+      <div id="sheet-body"></div>
+    </div>
+
+    <!-- Panels (Filter, Statistik/Einstellungen) -->
+    <div id="panel" class="panel" hidden>
+      <div class="panel-head">
+        <h2 id="panel-title"></h2>
+        <button id="panel-close" class="icon-btn" aria-label="Schließen">✕</button>
+      </div>
+      <div id="panel-body"></div>
+    </div>
+
+    <!-- Login -->
+    <div id="login" hidden>
+      <form id="login-form">
+        <div class="login-logo">⛩</div>
+        <h1>Jinja</h1>
+        <p>Schreinkarte Japan</p>
+        <input id="login-email" type="email" placeholder="E-Mail" autocomplete="username" required />
+        <input id="login-password" type="password" placeholder="Passwort" autocomplete="current-password" required />
+        <button type="submit" class="primary">Anmelden</button>
+        <p id="login-error" class="error"></p>
+      </form>
+    </div>
+
+    <div id="loading">
+      <div class="login-logo">⛩</div>
+      <p id="loading-text">Lade Schreine …</p>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

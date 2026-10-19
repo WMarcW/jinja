@@ -1,0 +1,6 @@
+requests
+rapidfuzz
+mapbox-vector-tile
+osmium
+shapely
+pykakasi

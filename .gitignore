@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.venv/
+data-pipeline/raw/
+.env.local
+__pycache__/
