@@ -148,6 +148,28 @@ create policy "photos update own" on storage.objects for update to authenticated
 create or replace function public.ping() returns text language sql security definer as $$ select 'pong' $$;
 grant execute on function public.ping() to anon;
 
+-- ---------- Routen (siehe migrations/002_routes.sql) ----------
+create table if not exists public.routes (
+  id         text primary key,          -- "r" + uuid
+  name       text not null,
+  stops      text[] not null default '{}',  -- Schrein-IDs in Reihenfolge
+  created_by uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  deleted    boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists touch on public.routes;
+create trigger touch before insert or update on public.routes
+  for each row execute function public.touch_updated_at();
+
+alter table public.routes enable row level security;
+drop policy if exists "read" on public.routes;
+drop policy if exists "insert own" on public.routes;
+drop policy if exists "update" on public.routes;
+create policy "read" on public.routes for select to authenticated using (true);
+create policy "insert own" on public.routes for insert to authenticated with check (created_by = auth.uid());
+create policy "update" on public.routes for update to authenticated using (true);
+
 -- Speicherverbrauch (für Anzeige in der App)
 create or replace function public.storage_usage() returns bigint language sql security definer
 set search_path = public as $$

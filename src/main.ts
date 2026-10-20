@@ -4,6 +4,7 @@ import { loadShrines, nearestPref } from "./data";
 import { closeSheet, currentShrine, openSheet } from "./detail";
 import { initMap, locate, markTemp, refreshMap } from "./map";
 import { loadFilters, openFilterPanel, openStatsPanel } from "./panels";
+import { openRoutesPanel, render as renderRoute } from "./routes";
 import { initSearch } from "./search";
 import { initAuth, localMode, login, onChange, saveCustom, startAutoSync, state } from "./store";
 import { toast } from "./ui";
@@ -27,11 +28,13 @@ async function boot(): Promise<void> {
   initSearch((id) => void openSheet(id));
   $("btn-filter").onclick = openFilterPanel;
   $("btn-stats").onclick = openStatsPanel;
+  $("btn-routes").onclick = openRoutesPanel;
   $("btn-locate").onclick = locate;
 
   onChange(() => {
     refreshMap();
     updateBadge();
+    renderRoute(); // z. B. Route vom Partner geändert
     // offenes Sheet aktualisieren, außer der Nutzer tippt gerade darin
     const id = currentShrine();
     if (id && !$("sheet").contains(document.activeElement)) void openSheet(id);

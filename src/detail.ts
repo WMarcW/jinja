@@ -3,6 +3,7 @@
 import { displayName, KIND_CUSTOM, KIND_HOKORA, KIND_UNNAMED, loadDetails, PREFS, RANKS, shrines, type Shrine } from "./data";
 import { getShrine } from "./map";
 import { prepareImage } from "./photos";
+import { isEditingRoute, routeIndex, toggleStop } from "./routes";
 import {
   addPhoto, deletePhoto, myVisit, partnerId, photoBlob, photosFor, saveCustom, saveGoshuinInfo,
   saveVisit, state, userName, vkey, type GoshuinInfo, type Photo, type Visit,
@@ -63,6 +64,13 @@ export async function openSheet(id: string): Promise<void> {
       </div>
       <button class="icon-btn" id="sheet-close" aria-label="Schließen">✕</button>
     </div>
+    ${
+      isEditingRoute()
+        ? routeIndex(id) >= 0
+          ? `<button class="route-toggle on" id="route-toggle">✓ Stopp ${routeIndex(id) + 1} der Route · entfernen</button>`
+          : `<button class="route-toggle" id="route-toggle">＋ Zur Route hinzufügen</button>`
+        : ""
+    }
     ${
       unnamedBase
         ? `<input id="s-name" class="text" placeholder="Name ergänzen (z. B. vom Schild am Torii) …" value="${esc(info?.name ?? "")}" />`
@@ -129,6 +137,13 @@ export async function openSheet(id: string): Promise<void> {
   body.scrollTop = keepScroll;
 
   document.getElementById("sheet-close")!.onclick = closeSheet;
+  document.getElementById("route-toggle")?.addEventListener("click", () => {
+    const adding = routeIndex(id) < 0;
+    toggleStop(id);
+    // nach dem Hinzufügen Sheet schließen, damit man direkt den nächsten Schrein wählen kann
+    if (adding) closeSheet();
+    else void openSheet(id);
+  });
 
   // ----- Status -----
   const save = (patch: Partial<Visit>) => {

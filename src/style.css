@@ -314,3 +314,75 @@ section h3, .panel h3 { font-size: 13px; text-transform: uppercase; letter-spaci
 .login-logo { font-size: 56px; color: var(--red); }
 .error { color: var(--red) !important; min-height: 1em; }
 #loading p { color: var(--muted); }
+
+/* ---------- Routen ---------- */
+#route-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 45vh;
+  background: var(--card);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
+  z-index: 8; /* unter dem Detail-Sheet */
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--safe-bottom);
+}
+@media (min-width: 700px) {
+  #route-bar { left: auto; right: 12px; bottom: 12px; width: 380px; border-radius: 18px; }
+}
+.rb-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border: none;
+  background: none;
+  padding: 14px 18px 8px;
+  text-align: left;
+  flex: none;
+}
+.rb-title { font-weight: 700; font-size: 17px; flex: none; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rb-meta { flex: 1; color: var(--muted); font-size: 13px; }
+.rb-chev { color: var(--muted); }
+.rb-list { list-style: none; margin: 0; padding: 0 12px; overflow-y: auto; flex: 1; min-height: 0; }
+.rb-list li { display: flex; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.rb-num {
+  width: 26px; height: 26px; border-radius: 13px; flex: none;
+  background: var(--blue); color: #fff; font-size: 13px; font-weight: 700;
+  display: grid; place-items: center;
+}
+.rb-name { flex: 1; min-width: 0; border: none; background: none; text-align: left; padding: 8px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rb-btn { width: 34px; height: 34px; flex: none; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; }
+.rb-btn:disabled { opacity: 0.3; }
+.rb-btn.del { color: var(--red); }
+.rb-empty { color: var(--muted); font-size: 14px; padding: 10px 4px !important; border: none !important; }
+.rb-actions { display: flex; gap: 8px; padding: 10px 12px; flex: none; }
+.rb-actions > * { flex: 1; text-align: center; margin: 0; padding: 11px 6px; font-size: 15px; text-decoration: none; }
+.rb-actions a.primary { color: #fff; }
+.rb-hint { margin: 0 14px 8px; font-size: 12px; color: var(--muted); }
+
+.route-toggle {
+  width: 100%;
+  margin-top: 12px;
+  padding: 13px;
+  border-radius: 14px;
+  border: 2px dashed var(--blue);
+  background: rgba(42, 111, 219, 0.08);
+  color: var(--blue);
+  font-weight: 700;
+  font-size: 16px;
+}
+.route-toggle.on { border-style: solid; background: var(--blue); color: #fff; }
+
+.primary.wide { width: 100%; margin-bottom: 14px; }
+.route-list { display: flex; flex-direction: column; gap: 8px; }
+.route-item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  border: 1px solid var(--line); background: var(--bg); border-radius: 14px; padding: 12px 14px; text-align: left;
+}
+.route-item small { color: var(--muted); }
+
+/* Meldungen im Routenmodus oberhalb der Leiste zeigen */
+body.route-mode #toast { bottom: auto; top: calc(var(--safe-top) + 64px); }

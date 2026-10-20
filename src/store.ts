@@ -51,7 +51,17 @@ export interface GoshuinInfo {
   updated_at?: string;
 }
 
+export interface Route {
+  id: string;
+  name: string;
+  stops: string[]; // Schrein-IDs in Reihenfolge
+  created_by: string;
+  deleted: boolean;
+  updated_at?: string;
+}
+
 type Op =
+  | { type: "route"; row: Route }
   | { type: "visit"; row: Visit }
   | { type: "photo"; row: Photo }
   | { type: "photoUpdate"; row: Photo }
@@ -74,6 +84,7 @@ export const state = {
   photos: new Map<string, Photo>(),
   custom: new Map<string, CustomShrine>(),
   goshuinInfo: new Map<string, GoshuinInfo>(),
+  routes: new Map<string, Route>(),
   queue: [] as Op[],
   lastSync: {} as Record<string, string>,
   syncing: false,
@@ -103,6 +114,7 @@ function persist(): void {
       photos: [...state.photos.values()],
       custom: [...state.custom.values()],
       goshuinInfo: [...state.goshuinInfo.values()],
+      routes: [...state.routes.values()],
       queue: state.queue,
       lastSync: state.lastSync,
     });
@@ -117,6 +129,7 @@ async function restore(): Promise<void> {
   state.photos = new Map(s.photos.map((p: Photo) => [p.id, p]));
   state.custom = new Map(s.custom.map((c: CustomShrine) => [c.id, c]));
   state.goshuinInfo = new Map(s.goshuinInfo.map((g: GoshuinInfo) => [g.shrine_id, g]));
+  state.routes = new Map((s.routes ?? []).map((r: Route) => [r.id, r]));
   state.queue = s.queue ?? [];
   state.lastSync = s.lastSync ?? {};
 }
@@ -213,6 +226,7 @@ function opId(op: Op): string {
     case "photoUpdate": return `pu:${op.row.id}`;
     case "custom": return `c:${op.row.id}`;
     case "goshuinInfo": return `g:${op.row.shrine_id}`;
+    case "route": return `r:${op.row.id}`;
   }
 }
 
@@ -263,6 +277,11 @@ export function saveCustom(c: CustomShrine): void {
   enqueue({ type: "custom", row: c });
 }
 
+export function saveRoute(r: Route): void {
+  state.routes.set(r.id, r);
+  enqueue({ type: "route", row: r });
+}
+
 export function saveGoshuinInfo(g: GoshuinInfo): void {
   g.updated_by = state.userId;
   state.goshuinInfo.set(g.shrine_id, g);
@@ -286,7 +305,9 @@ export async function photoBlob(p: Photo, which: "thumb" | "full"): Promise<Blob
 }
 
 // ---------- Synchronisierung ----------
-const TABLES = ["profiles", "visits", "photos", "custom_shrines", "goshuin_info"] as const;
+const TABLES = ["profiles", "visits", "photos", "custom_shrines", "goshuin_info", "routes"] as const;
+// Tabelle fehlt (Migration noch nicht ausgeführt) -> überspringen statt Sync abzubrechen
+const MISSING_TABLE = new Set(["42P01", "PGRST205"]);
 
 export async function sync(): Promise<void> {
   if (localMode || state.syncing || !navigator.onLine || !state.userId) return;
@@ -308,10 +329,9 @@ export async function sync(): Promise<void> {
 
 async function push(): Promise<void> {
   const sb = supabase!;
-  while (state.queue.length) {
-    const op = state.queue[0];
+  for (const op of [...state.queue]) {
     const { updated_at: _u, ...row } = op.row as unknown as Record<string, unknown>;
-    let error: { message: string } | null = null;
+    let error: { message: string; code?: string } | null = null;
     if (op.type === "visit") {
       ({ error } = await sb.from("visits").upsert(row));
     } else if (op.type === "photo") {
@@ -333,9 +353,13 @@ async function push(): Promise<void> {
       ({ error } = await sb.from("custom_shrines").upsert(row));
     } else if (op.type === "goshuinInfo") {
       ({ error } = await sb.from("goshuin_info").upsert(row));
+    } else if (op.type === "route") {
+      ({ error } = await sb.from("routes").upsert(row));
     }
+    // Tabelle existiert noch nicht (Migration fehlt): Änderung behalten, Rest weiter senden
+    if (error && error.code && MISSING_TABLE.has(error.code)) continue;
     if (error) throw new Error(error.message);
-    state.queue.shift();
+    state.queue = state.queue.filter((o) => o !== op);
     persist();
   }
 }
@@ -351,6 +375,7 @@ async function pull(): Promise<void> {
         if (state.lastSync[table]) q = q.gt("updated_at", state.lastSync[table]);
       }
       const { data, error } = await q;
+      if (error && MISSING_TABLE.has(error.code)) break;
       if (error) throw new Error(error.message);
       for (const r of data ?? []) apply(table, r);
       if (table !== "profiles" && data?.length) state.lastSync[table] = data[data.length - 1].updated_at;
@@ -381,6 +406,10 @@ function apply(table: string, r: any): void {
     case "goshuin_info":
       if (pendingIds.has(`g:${r.shrine_id}`)) return;
       state.goshuinInfo.set(r.shrine_id, r);
+      break;
+    case "routes":
+      if (pendingIds.has(`r:${r.id}`)) return;
+      state.routes.set(r.id, r);
       break;
   }
 }
@@ -425,6 +454,7 @@ export function exportJson(): string {
       photos: [...state.photos.values()].filter((p) => !p.deleted),
       custom_shrines: [...state.custom.values()].filter((c) => !c.deleted),
       goshuin_info: [...state.goshuinInfo.values()],
+      routes: [...state.routes.values()].filter((r) => !r.deleted),
     },
     null,
     2,

@@ -37,6 +37,8 @@ Die Schrein-IDs (`n123`, `w123`, `Q123`, `g…`) bleiben stabil, solange sich di
 4. Unter **Authentication → Sign In / Providers** die Option **„Allow new users to sign up"** ausschalten. Danach kann sich niemand sonst registrieren.
 5. Unter **Project Settings → API Keys** den **Publishable key** (`sb_publishable_…`) kopieren. Die **Project URL** (`https://xxxx.supabase.co`) findest du über den Button **Connect**. Den **Secret key** nicht verwenden und nie weitergeben.
 
+**Updates des Schemas:** Neue Funktionen bringen manchmal eine Datei in `supabase/migrations/` mit. Den Inhalt einmal im SQL Editor ausführen (z. B. `002_routes.sql` für Routen).
+
 ### 2. Lokal testen
 ```bash
 cp .env.example .env.local   # Werte aus Schritt 1.5 eintragen
@@ -60,6 +62,7 @@ Die URL in **Safari** öffnen, dann **Teilen → Zum Home-Bildschirm**. Danach s
 - **Schrein antippen:** Details öffnen, Besucht- und Goshuin-Status setzen (mit Datum), Notiz schreiben, Fotos hinzufügen.
 - **☰ Filter:** zwischen Ich, Partner und Beide wechseln, nach offen, besucht oder Goshuin filtern, Hokora und namenlose Schreine ein- oder ausblenden.
 - **⛩ Statistik:** Fortschritt nach Präfektur und Rang, dazu Einstellungen und Backup-Export.
+- **⤳ Routen:** Auf „＋ Neue Route“ tippen, Schreine auf der Karte antippen und „Zur Route hinzufügen“ wählen. Die Reihenfolge lässt sich mit ↑↓ ändern. Speichern fragt nach einem Namen. Gespeicherte Routen sehen beide Personen und können sie als Navigation in Google Maps öffnen.
 - **Lange auf die Karte drücken:** einen fehlenden Schrein selbst eintragen.
 - **Offline:** Änderungen und Fotos werden zwischengespeichert und automatisch hochgeladen, sobald wieder Netz da ist.
 

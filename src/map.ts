@@ -221,6 +221,33 @@ export function initMap(onSelect: (id: string) => void, onLongPress: (lngLat: ma
         paint: { "text-color": "#5b1013", "text-halo-color": "#ffffff", "text-halo-width": 1.5 },
       });
 
+      // Route: Luftlinie zwischen den Stopps + nummerierte Marker
+      map.addSource("route", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({
+        id: "route-line",
+        type: "line",
+        source: "route",
+        filter: ["==", ["geometry-type"], "LineString"],
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: { "line-color": "#2a6fdb", "line-width": 4, "line-opacity": 0.85, "line-dasharray": [2, 1.5] },
+      });
+      map.addLayer({
+        id: "route-stops",
+        type: "circle",
+        source: "route",
+        filter: ["==", ["geometry-type"], "Point"],
+        paint: { "circle-radius": 12, "circle-color": "#2a6fdb", "circle-stroke-width": 2.5, "circle-stroke-color": "#ffffff" },
+      });
+      map.addLayer({
+        id: "route-numbers",
+        type: "symbol",
+        source: "route",
+        filter: ["==", ["geometry-type"], "Point"],
+        layout: { "text-field": ["to-string", ["get", "n"]], "text-font": ["Noto Sans Bold"], "text-size": 12, "text-allow-overlap": true, "text-ignore-placement": true },
+        paint: { "text-color": "#ffffff" },
+      });
+      map.on("click", "route-stops", (e) => onSelect(e.features![0].properties!.id));
+
       map.on("click", "clusters", async (e) => {
         const f = e.features![0];
         const src = map.getSource("shrines") as GeoJSONSource;
@@ -259,6 +286,32 @@ function setupLongPress(cb: (lngLat: maplibregl.LngLat) => void): void {
   map.on("touchend", cancel);
   map.on("touchcancel", cancel);
   map.on("contextmenu", (e) => cb(e.lngLat)); // Desktop: Rechtsklick
+}
+
+/** Route auf der Karte zeigen (leere Liste = ausblenden). */
+export function setRouteLine(stops: Shrine[]): void {
+  const features: GeoJSON.Feature[] = stops.map((s, i) => ({
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [s.lon, s.lat] },
+    properties: { n: i + 1, id: s.id },
+  }));
+  if (stops.length > 1) {
+    features.unshift({
+      type: "Feature",
+      geometry: { type: "LineString", coordinates: stops.map((s) => [s.lon, s.lat]) },
+      properties: {},
+    });
+  }
+  (map?.getSource("route") as GeoJSONSource | undefined)?.setData({ type: "FeatureCollection", features });
+}
+
+/** Karte so zoomen, dass alle Punkte sichtbar sind (Platz unten für die Routenleiste). */
+export function fitPoints(points: Shrine[]): void {
+  if (!points.length) return;
+  if (points.length === 1) return flyTo(points[0].lat, points[0].lon, 14);
+  const b = new maplibregl.LngLatBounds();
+  for (const p of points) b.extend([p.lon, p.lat]);
+  map.fitBounds(b, { padding: { top: 90, bottom: window.innerHeight * 0.42, left: 40, right: 70 }, maxZoom: 15 });
 }
 
 export function flyTo(lat: number, lon: number, zoom = 15): void {
